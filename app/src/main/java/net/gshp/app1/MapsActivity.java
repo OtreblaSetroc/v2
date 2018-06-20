@@ -68,17 +68,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return true;
             }
         });
-        geos= new ArrayList<Geos>();
+        geos= new ArrayList<>();
         geosDB = new GeosDB(this,"GeosDB",null,1);
         db=geosDB.getWritableDatabase();
     }
-    public void inserta (Double l1, Double l2, int time){
+    public long inserta (Double l1, Double l2, int time){
 
         ContentValues values = new ContentValues();
         values.put("latitud",l1);
         values.put("longitud",l2);
         values.put("time",time);
-        db.insert("geos",null,values);
+        return db.insert("geos",null,values);
 
 
     }
@@ -151,7 +151,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Double l2=location.getLongitude();
         LatLng place = new LatLng(l1,l2);
         mMap.addMarker(new MarkerOptions().position(place).title("Marker in here"));
-        inserta(l1,l2,a);
+         long i=inserta(l1,l2,a);
+         if (i>0){
+             Toast.makeText(MapsActivity.this,"Se inserto correctamente",Toast.LENGTH_LONG).show();
+         }
         a+=a;
         CameraPosition camera = new CameraPosition.Builder()
                 .target(place)
