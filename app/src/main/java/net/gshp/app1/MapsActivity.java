@@ -1,9 +1,11 @@
 package net.gshp.app1;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -25,12 +27,19 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback ,LocationListener{
 
     private GoogleMap mMap;
     private BottomNavigationView bn;
     private  Location current;
     private  LocationManager locationManager;
+    private GeosDB geosDB;
+    private List<Geos> geos;
+    private SQLiteDatabase db;
+    private int a = 3000;
 
 
     @Override
@@ -59,12 +68,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return true;
             }
         });
+        geos= new ArrayList<Geos>();
+        geosDB = new GeosDB(this,"GeosDB",null,1);
+        db=geosDB.getWritableDatabase();
+    }
+    public void inserta (Double l1, Double l2, int time){
+
+        ContentValues values = new ContentValues();
+        values.put("latitud",l1);
+        values.put("longitud",l2);
+        values.put("time",time);
+        db.insert("geos",null,values);
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         this.checkISGPSEnabled();
+    }
+
+    @Override
+    protected void onDestroy() {
+        db.close();
+        super.onDestroy();
     }
 
     private void checkISGPSEnabled() {
@@ -119,8 +147,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onLocationChanged(Location location) {
 
         // Add a marker in Polanco and move the camera
-        LatLng place = new LatLng(location.getLatitude(),location.getLongitude());
+        Double l1=location.getLatitude();
+        Double l2=location.getLongitude();
+        LatLng place = new LatLng(l1,l2);
         mMap.addMarker(new MarkerOptions().position(place).title("Marker in here"));
+        inserta(l1,l2,a);
+        a+=a;
         CameraPosition camera = new CameraPosition.Builder()
                 .target(place)
                 .zoom(15) // 1 to 21
